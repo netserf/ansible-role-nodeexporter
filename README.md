@@ -48,4 +48,4 @@ BSD
 
 Author Information
 ------------------
-Greg Horie <greg.horie@telus.com>
+Greg Horie <networkserf@gmail.com>

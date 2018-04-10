@@ -1,0 +1,6 @@
+---
+# defaults file for ansible-role-nodeexporter
+NE_REPO: /opt/repo
+NE_TARBALL: node_exporter-0.15.2.linux-amd64.tar.gz
+NE_FINAL_HOME: /opt/node_exporter
+NE_URL: http://localhost:9100

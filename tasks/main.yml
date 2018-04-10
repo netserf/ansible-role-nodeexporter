@@ -1,0 +1,93 @@
+---
+# tasks file for ansible-role-nodeexporter
+- name: Assert distribution details
+  assert:
+    that:
+      - "ansible_distribution_file_variety == 'RedHat' or ansible_distribution_file_variety == 'CentOS'"
+      - "ansible_distribution_major_version == '6' or ansible_distribution_major_version == '7'"
+
+# move tarball to remote repository
+- name: Ensure repository directory in place
+  file:
+    path: "{{ NE_REPO }}"
+    state: directory
+    mode: 0755
+
+- name: Copy node_exporter tarball to repo
+  copy:
+    src: "{{ NE_TARBALL }}"
+    dest: "{{ NE_REPO }}"
+
+
+# ensure clean destination and unarchive tarball
+- name: Check if node_exporter directory exists
+  stat:
+    path: "{{ NE_FINAL_HOME }}"
+  register: ne_home
+
+- name: Remove old node_exporter directory, if it already exists
+  file:
+    state: absent
+    path: "{{ NE_FINAL_HOME }}"
+  when: ne_home.stat.exists
+
+- name: Unarchive tarball into home directory
+  unarchive:
+    src: "{{ NE_REPO}}/{{ NE_TARBALL }}"
+    dest: /opt
+    remote_src: yes
+
+
+# Check that intermediate node exporter home directory exists and rename to
+# the final directory name
+- name: Discover the ne_home variable name
+  set_fact:
+    # remove the '.tar.gz' extension and append with '/opt'
+    ne_home: "/opt/{{ '.'.join(NE_TARBALL.split('.')[:-2]) }}"
+
+- debug: var=ne_home
+
+- name: Check that intermediate ne_home directory exists
+  stat:
+    path: "{{ ne_home }}"
+  register: ne_exists
+
+- fail:
+    msg: "Could not find intermediate {{ ne_home }} directory"
+  when: ne_exists.stat.exists == false
+
+- name: Update node_exporter directory name for easier init management
+  command: "mv {{ ne_home }} /opt/node_exporter"
+
+# Deploy and configure node_exporter for RHEL 6 upstart
+- name: Copy node_exporter init script to /etc/init.d
+  copy:
+    src: node_exporter.sh
+    dest: /etc/init.d/node_exporter
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Enable node_exporter as a service
+  command: /sbin/chkconfig --add node_exporter
+
+- name: Start node_exporter service
+  service:
+    name: node_exporter
+    state: restarted
+
+# Verify service is behaving as expected
+- name: Check that node_exporter is listening
+  get_url:
+    url: "{{ NE_URL }}"
+    dest: /tmp/
+
+- name: Check that node_exporter.log file exists
+  stat:
+    path: /var/opt/node_exporter.log
+  register: log_exists
+
+- fail:
+    msg: "Could not find node_exporter log"
+  when: log_exists.stat.exists == false
+

@@ -1,0 +1,22 @@
+galaxy_info:
+  author: Greg Horie
+  description: The role was created to support Prometheus node exporter on RHEL 6 and RHEL 7 deployments. Its possible that it will work on other distributions, but this has not been validated for support.
+  license: BSD
+
+  min_ansible_version: 2.4
+
+  github_branch: master
+
+  platforms:
+  - name: EL
+    versions:
+    - 6
+    - 7 
+
+  galaxy_tags:
+  - redhat
+  - rhel
+  - centos
+  - prometheus
+
+dependencies: []

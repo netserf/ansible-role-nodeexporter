@@ -26,6 +26,9 @@ Testing
 - To troubleshoot the role:
 ```$ docker run --rm -it -w /workspace -v $(pwd):/workspace inhumantsar/ansible:centos7 /bin/bash```
 
+Todo
+----
+- Remove node_exporter tarball from role and fetch it just-in-time
 
 Example Playbook
 ----------------
